@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NOVENTA - Elite Tracker</title>
+    <meta name="theme-color" content="#000000">
+    <style>
+        :root { --bg-pure: #000000; --surface-1: #0a0a0a; --surface-2: #141414; --border: #222222; --primary: #F2B705; --primary-hover: #d4a004; --text-main: #ffffff; --text-muted: #888888; --danger: #ff3b3b; --success: #00e676; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif; background-color: var(--bg-pure); color: var(--text-main); padding-bottom: 90px; }
+        header { background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 20px; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .logo-text { font-size: 24px; font-weight: 900; letter-spacing: 2px; color: var(--text-main); margin: 0; }
+        .logo-accent { color: var(--primary); }
+        .version-badge { font-size: 10px; background: var(--surface-2); padding: 4px 8px; border-radius: 6px; color: var(--primary); border: 1px solid var(--border); }
+        .container { padding: 15px; max-width: 600px; margin: 0 auto; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 12px 0 25px 0; z-index: 1000; }
+        .nav-btn { background: none; border: none; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; font-size: 11px; gap: 5px; cursor: pointer; transition: 0.3s; width: 25%; font-weight: 500; }
+        .nav-btn.active { color: var(--primary); }
+        .nav-icon { font-size: 22px; }
+        .view-content { display: none; animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .view-content.active { display: block; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 15px; }
+        .section-title { font-size: 18px; font-weight: 700; color: var(--text-main); margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px; }
+        .toggle-group { display: flex; background: var(--surface-2); border-radius: 10px; padding: 4px; margin-bottom: 20px; border: 1px solid var(--border); }
+        .toggle-btn { flex: 1; background: transparent; border: none; color: var(--text-muted); padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 600; transition: 0.3s; }
+        .toggle-btn.active { background: var(--primary); color: #000; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .input-wrapper { margin-bottom: 12px; }
+        .input-wrapper label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+        input, select { width: 100%; background: var(--surface-2); border: 1px solid var(--border); color: white; padding: 14px; border-radius: 10px; font-size: 16px; appearance: none; outline: none; transition: 0.3s; }
+        input:focus, select:focus { border-color: var(--primary); }
+        button.action-btn { width: 100%; background: var(--primary); color: #000; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: bold; display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 10px; cursor: pointer; }
+        button.action-btn:active { transform: scale(0.98); background: var(--primary-hover); }
+        button.outline-btn { width: 100%; background: transparent; color: var(--text-main); border: 1px solid var(--border); padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+        .record-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; }
+        .record-header { display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px;}
+        .record-date { font-size: 12px; color: var(--primary); font-weight: bold; }
+        .record-main-val { font-size: 16px; font-weight: bold; }
+        .record-stats { display: flex; flex-wrap: wrap; gap: 15px; }
+        .stat-box { display: flex; flex-direction: column; }
+        .stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase;}
+        .stat-val { font-size: 14px; font-weight: 600; }
+        .del-btn { color: var(--danger); background: none; border: none; font-size: 12px; text-align: left; padding: 0; margin-top: 5px;}
+        .accordion { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; overflow: hidden; }
+        .acc-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 15px; cursor: pointer; background: var(--surface-2); }
+        .acc-body { padding: 0 15px; max-height: 0; overflow: hidden; transition: max-height 0.3s ease; background: var(--bg-pure); }
+        .acc-body.open { max-height: 1000px; padding: 15px; border-top: 1px solid var(--border); }
+        .ejercicio-item { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed var(--border); }
+        .ejercicio-item:last-child { border: none; margin: 0; padding: 0; }
+        .ej-nombre { font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 4px;}
+        .ej-detalles { font-size: 13px; color: var(--text-muted); }
+        .macro-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px;}
+        .macro-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 15px 5px; text-align: center; }
+        .macro-val { font-size: 20px; font-weight: 800; color: var(--primary); }
+        .macro-lbl { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+        .food-list { list-style: none; padding: 0; margin: 0; }
+        .food-list li { padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; display: flex; align-items: flex-start; gap: 10px; }
+        .food-list li::before { content: "•"; color: var(--primary); font-weight: bold;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1 class="logo-text">NOVENTA<span class="logo-accent">.PRO</span></h1>
+        <span class="version-badge">v2.0 ELITE</span>
+    </header>
+
+    <main id="view-tracker" class="view-content active container">
+        <div class="toggle-group">
+            <button class="toggle-btn active" onclick="switchTracker('medidas', this)">📏 Medidas</button>
+            <button class="toggle-btn" onclick="switchTracker('sobrecarga', this)">🏋️ Sobrecarga</button>
+        </div>
+        <div id="sub-medidas">
+            <div class="card">
+                <div class="section-title">📊 Registro de Medidas</div>
+                <div class="input-wrapper"><label>Fecha</label><input type="date" id="fecha-medidas"></div>
+                <div class="form-grid">
+                    <div class="input-wrapper"><label>Peso (kg)</label><input type="number" id="peso" placeholder="Ej. 70.5" step="0.1"></div>
+                    <div class="input-wrapper"><label>Pecho (cm)</label><input type="number" id="pecho" placeholder="Ej. 100" step="0.1"></div>
+                    <div class="input-wrapper"><label>Brazo (cm)</label><input type="number" id="brazo" placeholder="Ej. 35" step="0.1"></div>
+                    <div class="input-wrapper"><label>Muslo (cm)</label><input type="number" id="muslo" placeholder="Ej. 55" step="0.1"></div>
+                    <div class="input-wrapper" style="grid-column: span 2;"><label>Cintura (cm)</label><input type="number" id="cintura" placeholder="Ej. 80" step="0.1"></div>
+                </div>
+                <button class="action-btn" onclick="guardarMedida()">💾 Guardar Medidas</button>
+            </div>
+            <div class="section-title" style="margin-top: 20px;">Historial Corporal</div>
+            <div id="lista-medidas"></div>
+        </div>
+        <div id="sub-sobrecarga" style="display: none;">
+            <div class="card">
+                <div class="section-title">🔥 Bitácora de Fuerza</div>
+                <p style="font-size:12px; color:var(--text-muted); margin-top:0;">Registra solo el primer ejercicio compuesto.</p>
+                <div class="input-wrapper"><label>Fecha</label><input type="date" id="fecha-fuerza"></div>
+                <div class="input-wrapper">
+                    <label>Ejercicio Base</label>
+                    <select id="ejercicio-fuerza">
+                        <option value="Press de Banca">Press de Banca Plano</option>
+                        <option value="Sentadilla">Sentadilla Libre</option>
+                        <option value="Peso Muerto">Peso Muerto</option>
+                        <option value="Press Militar">Press Militar (Hombro)</option>
+                    </select>
+                </div>
+                <div class="form-grid">
+                    <div class="input-wrapper"><label>Peso (kg)</label><input type="number" id="peso-fuerza" placeholder="Ej. 60" step="1"></div>
+                    <div class="input-wrapper"><label>Repeticiones</label><input type="number" id="reps-fuerza" placeholder="Ej. 8" step="1"></div>
+                </div>
+                <button class="action-btn" onclick="guardarFuerza()">⚡ Guardar Levantamiento</button>
+            </div>
+            <div class="section-title" style="margin-top: 20px;">Historial de Sobrecarga</div>
+            <div id="lista-fuerza"></div>
+        </div>
+    </main>
+
+    <main id="view-rutinas" class="view-content container">
+        <div class="toggle-group">
+            <button class="toggle-btn active" onclick="switchFase('fase1', this)">Fase 1 (Mes 1-3)</button>
+            <button class="toggle-btn" onclick="switchFase('fase2', this)">Fase 2 (Mes 4-6)</button>
+        </div>
+        <div id="fase1-content">
+            <div class="card" style="border-color: var(--primary);">
+                <div class="section-title">Torso / Pierna (Frecuencia 2)</div>
+            </div>
+            <div class="accordion">
+                <div class="acc-header" onclick="toggleAcc(this)">Lunes: Torso (Fuerza) <span>▼</span></div>
+                <div class="acc-body">
+                    <div class="ejercicio-item"><div class="ej-nombre">1. Press de banca plano</div><div class="ej-detalles">4 Series x 6 Repeticiones</div></div>
+                    <div class="ejercicio-item"><div class="ej-nombre">2. Remo con barra</div><div class="ej-detalles">4 Series x 6 Repeticiones</div></div>
+                    <div class="ejercicio-item"><div class="ej-nombre">3. Press militar de pie</div><div class="ej-detalles">3 Series x 8 Repeticiones</div></div>
+                    <div class="ejercicio-item"><div class="ej-nombre">4. Dominadas (o Jalón pesado)</div><div class="ej-detalles">3 Series x 8 Repeticiones</div></div>
+                    <div class="ejercicio-item"><div class="ej-nombre">5. Curl con barra</div><div class="ej-detalles">3 Series x 10 Repeticiones</div></div>
+                </div>
+            </div>
+            <div class="accordion">
+                <div class="acc-header" onclick="toggleAcc(this)">Martes: Pierna (Fuerza) <span>▼</span></div>
+                <div class="acc-body">
+                    <div class="ejercicio-item"><div class="ej-nombre">1. Sentadilla libre</div><div class="ej-detalles">4 Series x 6 Repeticiones</div></div>
+                    <div class="ejercicio-item"><div class="ej-nombre">2. Peso muerto convencional</div><div class="ej-detalles">4 Series x 6 Repeticiones</div></div>
+                    <div class="ejercicio-item"><div class="ej-nombre">3. Prensa de piernas</div><div class="ej-detalles">3 Series x 8 Repeticiones</div></div>
+                    <div class="ejercicio-item"><div class="ej-nombre">4. Elevación de pantorrillas</div><div class="ej-detalles">4 Series x 8 Repeticiones</div></div>
+                </div>
+            </div>
+            <div class="accordion">
+                <div class="acc-header" onclick="toggleAcc(this)">Jueves: Torso (Hipertrofia) <span>▼</span></div>
+                <div class="acc-body">
+                    <div class="ejercicio-item"><div class="ej-nombre">1. Press inclinado mancuernas</div><div class="ej-detalles">4 Series x 10 Repeticiones</div></div>
+                    <div class="ejercicio-item"><div class="ej-nombre">2. Jalón al pecho</div><div class="ej-detalles">4 Series x 10 Repeticiones</div></div>
+                    <div class="ejercicio-item"><div class="ej-nombre">3. Elevaciones laterales</div><div class="ej-detalles">4 Series x 12 Repeticiones</div></div>
+                    <div class="ejercicio-item"><div class="ej-nombre">4. Press francés</div><div class="ej-detalles">3 Series x 12 Repeticiones</div></div>
+                    <div class="ejercicio-item"><div class="ej-nombre">5. Curl martillo</div><div class="ej-detalles">3 Series x 12 Repeticiones</div></div>
+                </div>
+            </div>
+            <div class="accordion">
+                <div class="acc-header" onclick="toggleAcc(this)">Viernes: Pierna (Hipertrofia) <span>▼</span></div>
+                <div class="acc-body">
+                    <div class="ejercicio-item"><div class="ej-nombre">1. Sentadilla búlgara</div><div class="ej-detalles">4 Series x 10 Repeticiones</div></div>
+                    <div class="ejercicio-item"><div class="ej-nombre">2. Curl femoral acostado</div><div class="ej-detalles">4 Series x 12 Repeticiones</div></div>
+                    <div class="ejercicio-item"><div class="ej-nombre">3. Extensiones de cuádriceps</div><div class="ej-detalles">4 Series x 15 Repeticiones</div></div>
+                    <div class="ejercicio-item"><div class="ej-nombre">4. Pantorrillas sentado</div><div class="ej-detalles">4 Series x 15 Repeticiones</div></div>
+                </div>
+            </div>
+            <div class="accordion">
+                <div class="acc-header" style="color:var(--primary);" onclick="toggleAcc(this)">Día 5 (Opcional): Bombeo <span>▼</span></div>
+                <div class="acc-body">
+                    <div class="ejercicio-item"><div class="ej-nombre">1. Elevaciones laterales</div><div class="ej-detalles">4 Series x 15-20 Repeticiones</div></div>
+                    <div class="ejercicio-item"><div class="ej-nombre">2. Face Pull</div><div class="ej-detalles">4 Series x 15-20 Repeticiones</div></div>
+                    <div class="ejercicio-item"><div class="ej-nombre">3. Curl antebrazo</div><div class="ej-detalles">3 Series x 15 Repeticiones</div></div>
+                    <div class="ejercicio-item"><div class="ej-nombre">4. Crunch en polea</div><div class="ej-detalles">3 Series x 12-15 Repeticiones</div></div>
+                    <div class="ejercicio-item"><div class="ej-nombre">5. Plancha abdominal</div><div class="ej-detalles">3 Series x 45-60 Segundos</div></div>
+                </div>
+            </div>
+        </div>
+        <div id="fase2-content" style="display: none;">
+            <div class="card" style="border-color: #ff4a4a;">
+                <div class="section-title">Biseries Antagónicas (Densidad)</div>
+            </div>
+            <div class="accordion">
+                <div class="acc-header" onclick="toggleAcc(this)">Día 1: Pecho y Espalda <span>▼</span></div>
+                <div class="acc-body">
+                    <div class="ejercicio-item"><div class="ej-nombre">Biserie 1 (4 Series)</div><div class="ej-detalles">A. Press inclinado<br>B. Remo T-bar</div></div>
+                    <div class="ejercicio-item"><div class="ej-nombre">Biserie 2 (4 Series)</div><div class="ej-detalles">A. Press declinado<br>B. Jalón al pecho</div></div>
+                </div>
+            </div>
+            <div class="accordion">
+                <div class="acc-header" onclick="toggleAcc(this)">Día 2: Pierna Completa <span>▼</span></div>
+                <div class="acc-body">
+                    <div class="ejercicio-item"><div class="ej-nombre">Biserie 1 (4 Series)</div><div class="ej-detalles">A. Sentadilla frontal<br>B. Peso muerto rumano</div></div>
+                    <div class="ejercicio-item"><div class="ej-nombre">Biserie 2 (4 Series)</div><div class="ej-detalles">A. Prensa inclinada<br>B. Curl femoral</div></div>
+                    <div class="ejercicio-item"><div class="ej-nombre">Biserie 3 (4 Series)</div><div class="ej-detalles">A. Extensiones<br>B. Pantorrillas en prensa</div></div>
+                </div>
+            </div>
+            <div class="accordion">
+                <div class="acc-header" onclick="toggleAcc(this)">Día 3: Hombros y Trapecios <span>▼</span></div>
+                <div class="acc-body">
+                    <div class="ejercicio-item"><div class="ej-nombre">Biserie 1 (4 Series)</div><div class="ej-detalles">A. Press Arnold<br>B. Encogimientos</div></div>
+                    <div class="ejercicio-item"><div class="ej-nombre">Biserie 2 (4 Series)</div><div class="ej-detalles">A. Elevaciones laterales<br>B. Face pull</div></div>
+                </div>
+            </div>
+            <div class="accordion">
+                <div class="acc-header" onclick="toggleAcc(this)">Día 4: Bíceps y Tríceps <span>▼</span></div>
+                <div class="acc-body">
+                    <div class="ejercicio-item"><div class="ej-nombre">Biserie 1 (4 Series)</div><div class="ej-detalles">A. Curl de bíceps<br>B. Extensión de tríceps</div></div>
+                    <div class="ejercicio-item"><div class="ej-nombre">Biserie 2 (4 Series)</div><div class="ej-detalles">A. Curl predicador<br>B. Press cerrado</div></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <main id="view-nutricion" class="view-content container">
+        <div class="card">
+            <div style="text-align: center;"><h2 style="margin: 0; color: white; font-size: 38px;">3,200</h2><div style="color: var(--text-muted); font-size: 14px;">Calorías Diarias</div></div>
+            <div class="macro-grid">
+                <div class="macro-card"><div class="macro-val">155g</div><div class="macro-lbl">Proteína</div></div>
+                <div class="macro-card" style="border-color: var(--primary);"><div class="macro-val">430g</div><div class="macro-lbl">Carbos</div></div>
+                <div class="macro-card"><div class="macro-val">85g</div><div class="macro-lbl">Grasas</div></div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="section-title">🥩 Estructura (Ejemplo)</div>
+            <ul class="food-list">
+                <li><strong>Desayuno:</strong> Huevos enteros, avena, queso duro.</li>
+                <li><strong>Almuerzo:</strong> Abundante arroz, carne de res, aguacate, vegetales.</li>
+                <li><strong>Pre-Entreno:</strong> Papa criolla cocida.</li>
+                <li><strong>Cena:</strong> Pechuga de pollo, arroz/papa, brócoli/pimentón.</li>
+            </ul>
+        </div>
+        <div class="card">
+            <div class="section-title">💊 Suplementación Base</div>
+            <ul class="food-list">
+                <li><strong>Creatina:</strong> 5 gramos diarios sin falta.</li>
+                <li><strong>Agua:</strong> 3.5 a 4 litros al día.</li>
+            </ul>
+        </div>
+    </main>
+
+    <main id="view-ajustes" class="view-content container">
+        <div class="card">
+            <div class="section-title">🛡️ Bóveda de Datos (Backup)</div>
+            <button class="action-btn" onclick="exportarBackup()">📥 Descargar Backup</button>
+            <hr style="border: none; border-top: 1px solid var(--border); margin: 25px 0;">
+            <div class="section-title">Restaurar Datos</div>
+            <input type="file" id="inputFile" accept=".json" style="display:none;" onchange="importarBackup(event)">
+            <button class="outline-btn" onclick="document.getElementById('inputFile').click()">📤 Seleccionar Archivo .json</button>
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <button class="nav-btn active" onclick="switchMainTab('view-tracker', this)"><span class="nav-icon">📈</span> Tracker</button>
+        <button class="nav-btn" onclick="switchMainTab('view-rutinas', this)"><span class="nav-icon">🏋️</span> Rutinas</button>
+        <button class="nav-btn" onclick="switchMainTab('view-nutricion', this)"><span class="nav-icon">🥩</span> Nutrición</button>
+        <button class="nav-btn" onclick="switchMainTab('view-ajustes', this)"><span class="nav-icon">⚙️</span> Ajustes</button>
+    </nav>
+
+    <script>
+        document.getElementById('fecha-medidas').valueAsDate = new Date();
+        document.getElementById('fecha-fuerza').valueAsDate = new Date();
+        const KEY_MEDIDAS = 'noventa_elite_medidas';
+        const KEY_FUERZA = 'noventa_elite_fuerza';
+
+        function switchMainTab(viewId, btn) {
+            document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            btn.classList.add('active');
+            window.scrollTo(0,0);
+        }
+        function switchTracker(sub, btn) {
+            document.querySelectorAll('#view-tracker .toggle-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            if(sub === 'medidas') { document.getElementById('sub-medidas').style.display = 'block'; document.getElementById('sub-sobrecarga').style.display = 'none'; }
+            else { document.getElementById('sub-medidas').style.display = 'none'; document.getElementById('sub-sobrecarga').style.display = 'block'; }
+        }
+        function switchFase(fase, btn) {
+            document.querySelectorAll('#view-rutinas .toggle-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            if(fase === 'fase1') { document.getElementById('fase1-content').style.display = 'block'; document.getElementById('fase2-content').style.display = 'none'; }
+            else { document.getElementById('fase1-content').style.display = 'none'; document.getElementById('fase2-content').style.display = 'block'; }
+        }
+        function toggleAcc(element) {
+            const body = element.nextElementSibling;
+            if (body.classList.contains('open')) { body.classList.remove('open'); element.querySelector('span').innerText = '▼'; }
+            else { body.classList.add('open'); element.querySelector('span').innerText = '▲'; }
+        }
+
+        function getDB(key) { const data = localStorage.getItem(key); return data ? JSON.parse(data) : []; }
+        function saveDB(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+
+        function guardarMedida() {
+            const fecha = document.getElementById('fecha-medidas').value;
+            const peso = document.getElementById('peso').value;
+            if(!fecha || !peso) return alert('⚠️ Fecha y Peso son obligatorios.');
+            const reg = { id: Date.now(), fecha, peso: parseFloat(peso), pecho: document.getElementById('pecho').value || '--', brazo: document.getElementById('brazo').value || '--', muslo: document.getElementById('muslo').value || '--', cintura: document.getElementById('cintura').value || '--' };
+            let db = getDB(KEY_MEDIDAS); db.push(reg); db.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)); saveDB(KEY_MEDIDAS, db);
+            document.querySelectorAll('#sub-medidas input[type=number]').forEach(i => i.value = ''); renderMedidas();
+        }
+        function renderMedidas() {
+            const db = getDB(KEY_MEDIDAS); const container = document.getElementById('lista-medidas');
+            if(db.length === 0) return container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px;">Sin registros.</div>';
+            let html = '';
+            db.forEach(r => {
+                html += `<div class="record-card"><div class="record-header"><span class="record-date">${r.fecha}</span><span class="record-main-val" style="color:var(--primary)">${r.peso} kg</span></div><div class="record-stats"><div class="stat-box"><span class="stat-label">Pecho</span><span class="stat-val">${r.pecho}</span></div><div class="stat-box"><span class="stat-label">Brazo</span><span class="stat-val">${r.brazo}</span></div><div class="stat-box"><span class="stat-label">Muslo</span><span class="stat-val">${r.muslo}</span></div><div class="stat-box"><span class="stat-label">Cintura</span><span class="stat-val">${r.cintura}</span></div></div><button class="del-btn" onclick="eliminarRegistro('${KEY_MEDIDAS}', ${r.id})">Eliminar</button></div>`;
+            }); container.innerHTML = html;
+        }
+
+        function guardarFuerza() {
+            const fecha = document.getElementById('fecha-fuerza').value; const ej = document.getElementById('ejercicio-fuerza').value; const peso = document.getElementById('peso-fuerza').value; const reps = document.getElementById('reps-fuerza').value;
+            if(!fecha || !peso || !reps) return alert('⚠️ Completa peso y repeticiones.');
+            const reg = { id: Date.now(), fecha, ejercicio: ej, peso: parseFloat(peso), reps: parseInt(reps) };
+            let db = getDB(KEY_FUERZA); db.push(reg); db.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)); saveDB(KEY_FUERZA, db);
+            document.getElementById('peso-fuerza').value = ''; document.getElementById('reps-fuerza').value = ''; renderFuerza();
+        }
+        function renderFuerza() {
+            const db = getDB(KEY_FUERZA); const container = document.getElementById('lista-fuerza');
+            if(db.length === 0) return container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px;">Sin registros.</div>';
+            let html = '';
+            db.forEach(r => {
+                html += `<div class="record-card"><div class="record-header"><span class="record-date">${r.fecha}</span><span class="record-main-val">${r.ejercicio}</span></div><div class="record-stats"><div class="stat-box"><span class="stat-label">Carga</span><span class="stat-val" style="color:white; font-size:18px;">${r.peso} kg</span></div><div class="stat-box"><span class="stat-label">Reps</span><span class="stat-val" style="color:white; font-size:18px;">${r.reps}</span></div></div><button class="del-btn" onclick="eliminarRegistro('${KEY_FUERZA}', ${r.id})">Eliminar</button></div>`;
+            }); container.innerHTML = html;
+        }
+        function eliminarRegistro(key, id) { if(confirm('¿Eliminar este registro?')) { let db = getDB(key); db = db.filter(r => r.id !== id); saveDB(key, db); if(key === KEY_MEDIDAS) renderMedidas(); else renderFuerza(); } }
+
+        function exportarBackup() {
+            const backupData = { medidas: getDB(KEY_MEDIDAS), fuerza: getDB(KEY_FUERZA) };
+            const blob = new Blob([JSON.stringify(backupData)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `NOVENTA_ELITE_Backup.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+        function importarBackup(e) {
+            const file = e.target.files[0]; if(!file) return; const reader = new FileReader();
+            reader.onload = function(evt) {
+                try { const parsed = JSON.parse(evt.target.result); if(parsed.medidas && parsed.fuerza) { saveDB(KEY_MEDIDAS, parsed.medidas); saveDB(KEY_FUERZA, parsed.fuerza); alert('✅ Backup restaurado.'); renderMedidas(); renderFuerza(); switchMainTab('view-tracker', document.querySelector('.nav-btn')); } else { alert('❌ Archivo inválido.'); } } catch(err) { alert('❌ Error al leer.'); }
+            }; reader.readAsText(file); e.target.value = '';
+        }
+
+        renderMedidas(); renderFuerza();
+    </script>
+</body>
+</html>
